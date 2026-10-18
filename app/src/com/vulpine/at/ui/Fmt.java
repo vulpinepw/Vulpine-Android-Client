@@ -178,7 +178,12 @@ public final class Fmt {
         return p;
     }
 
+    public static boolean sticker(Att a) {
+        return "sticker.webp".equals(a.name) && a.url != null && a.url.contains("/stickers/");
+    }
+
     public static String label(Att a) {
+        if (sticker(a)) return "Sticker";
         if (a.gif()) return "GIF";
         if (a.image()) return "Photo";
         if (a.video()) return "Video";

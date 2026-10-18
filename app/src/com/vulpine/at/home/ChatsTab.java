@@ -324,6 +324,7 @@ public class ChatsTab extends Home.Tab {
             Sync.save();
         }
         App.bg(() -> Http.post("/conversations/" + cid + "/read", null));
+        com.vulpine.at.svc.Notifier.cancelConv(App.ctx, cid);
         Home.openChat(cid);
     }
 

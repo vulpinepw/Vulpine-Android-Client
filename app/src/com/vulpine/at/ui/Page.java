@@ -118,7 +118,7 @@ public abstract class Page extends Screen {
             if (e.getActionMasked() == MotionEvent.ACTION_MOVE) {
                 vt.addMovement(e);
                 float dx = e.getRawX() - x0, dy = e.getRawY() - y0;
-                if (Math.abs(dy) > T.dp(10) && Math.abs(dy) > Math.abs(dx)) {
+                if (Math.abs(dy) > T.dp(12) && Math.abs(dy) > 1.15f * Math.abs(dx)) {
                     aborted = true;
                     return false;
                 }
@@ -126,7 +126,7 @@ public abstract class Page extends Screen {
                     aborted = true;
                     return false;
                 }
-                if (dx >= T.dp(10) && dx > 1.4f * Math.abs(dy)) {
+                if (dx >= T.dp(8) && dx > 1.05f * Math.abs(dy)) {
                     engaged = true;
                     x0 = e.getRawX();
                     begin();
@@ -181,7 +181,7 @@ public abstract class Page extends Screen {
                     }
                     engaged = false;
                     float w = getWidth();
-                    boolean go = e.getActionMasked() == MotionEvent.ACTION_UP && (dx > w * .33f || (v > .45f && dx > T.dp(16)));
+                    boolean go = e.getActionMasked() == MotionEvent.ACTION_UP && (dx > w * .24f || (v > .28f && dx > T.dp(12)));
                     if (v < -.3f) go = false;
                     float from = dx, to = go ? w : 0;
                     long dur = (long) Math.max(120, Math.min(300, Math.abs(to - from) / Math.max(1f, w) * 380));

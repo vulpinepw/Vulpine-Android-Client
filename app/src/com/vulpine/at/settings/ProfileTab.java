@@ -666,9 +666,6 @@ public class ProfileTab extends Home.Tab {
             if (sel) ring.setBackground(W.round(0, 16, T.accent, 2));
             ring.addView(tile, new FrameLayout.LayoutParams(W.MP, T.dp(34)));
             LinearLayout.LayoutParams rp = W.lp(W.MP, T.dp(42));
-            rp.leftMargin = rp.rightMargin = -T.dp(4);
-            rp.topMargin = -T.dp(4);
-            rp.bottomMargin = -T.dp(4);
             cell.addView(ring, rp);
             TextView n = W.text(c, e[1], 10, 400, T.textSecondary);
             n.setSingleLine(true);
@@ -918,8 +915,6 @@ public class ProfileTab extends Home.Tab {
             }
             ring.addView(tile, new FrameLayout.LayoutParams(W.MP, T.dp(44)));
             LinearLayout.LayoutParams rp = W.lp(W.MP, T.dp(52));
-            rp.leftMargin = rp.rightMargin = -T.dp(4);
-            rp.topMargin = rp.bottomMargin = -T.dp(4);
             cell.addView(ring, rp);
             TextView n = W.text(c, f[1], 10, 400, T.textSecondary);
             n.setSingleLine(true);

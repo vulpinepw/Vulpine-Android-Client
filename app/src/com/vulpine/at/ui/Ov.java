@@ -32,7 +32,13 @@ public final class Ov {
 
     public static void push(View v, Runnable onBack) {
         layers.add(new Object[]{v, onBack});
-        if (v.getTranslationZ() < T.dpf(16)) v.setTranslationZ(T.dpf(16));
+        float z = T.dpf(16);
+        FrameLayout h = host();
+        if (h != null) for (int i = 0; i < h.getChildCount(); i++) {
+            View ch = h.getChildAt(i);
+            if (ch != v) z = Math.max(z, ch.getTranslationZ() + 1);
+        }
+        if (v.getTranslationZ() < z) v.setTranslationZ(z);
     }
 
     public static void remove(View v) {

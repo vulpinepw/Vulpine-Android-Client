@@ -65,10 +65,12 @@ public final class Stories {
     public static View strip(Context c, Home.Tab t) {
         Strip s = new Strip(c);
         s.tab = new WeakReference<>(t);
+        s.pinned = t instanceof com.vulpine.at.home.ContactsTab;
         for (WeakReference<Strip> w : strips) if (w.get() == null || w.get().tab.get() == t) strips.remove(w);
         strips.add(new WeakReference<>(s));
-        s.setLayoutParams(new LinearLayout.LayoutParams(W.MP, open ? T.dp(104) : 0));
-        s.setAlpha(open ? 1 : 0);
+        boolean on = open || s.pinned;
+        s.setLayoutParams(new LinearLayout.LayoutParams(W.MP, on ? T.dp(104) : 0));
+        s.setAlpha(on ? 1 : 0);
         s.rebuild();
         return s;
     }
@@ -106,7 +108,7 @@ public final class Stories {
 
     public static void onListScroll(Home.Tab t) {
         Strip s = of(t);
-        if (!open || s == null || anim != null && anim.isRunning() || !s.isShown()) return;
+        if (!open || s == null || s.pinned || anim != null && anim.isRunning() || !s.isShown()) return;
         ListView l = list(s);
         if (l == null) return;
         int first = l.getFirstVisiblePosition();
@@ -123,7 +125,7 @@ public final class Stories {
         View c0 = l.getChildAt(0);
         int y0 = c0 == null ? 0 : c0.getTop();
         open = false;
-        for (Strip x : all()) {
+        for (Strip x : all()) if (!x.pinned) {
             setH(x, 0);
             x.setAlpha(0);
         }
@@ -133,12 +135,12 @@ public final class Stories {
 
     public static boolean pullFirst(Home.Tab t) {
         Strip s = of(t);
-        return !open && s != null && s.isAttachedToWindow() && !Store.miniList().isEmpty();
+        return !open && s != null && !s.pinned && s.isAttachedToWindow() && !Store.miniList().isEmpty();
     }
 
     public static void dragStrip(Home.Tab t, float dy) {
         Strip s = of(t);
-        if (s == null) return;
+        if (s == null || s.pinned) return;
         if (anim != null) anim.cancel();
         float full = T.dp(104);
         dragH = Math.max(0, Math.min(full, dy * .7f));
@@ -147,7 +149,7 @@ public final class Stories {
     }
 
     public static void releaseStrip(Home.Tab t) {
-        if (of(t) == null) return;
+        if (of(t) == null || of(t).pinned) return;
         setOpen(dragH > T.dp(40), false);
         dragH = 0;
     }
@@ -210,6 +212,12 @@ public final class Stories {
             Sheets.intro(a);
             return;
         }
+        Strip cur = active();
+        if (cur != null && cur.pinned) {
+            ListView l = list(cur);
+            if (l != null) l.smoothScrollToPositionFromTop(0, 0, 300);
+            return;
+        }
         setOpen(!open, true);
     }
 
@@ -221,11 +229,12 @@ public final class Stories {
     }
 
     static void setOpen(boolean v, boolean scrollTop) {
-        Strip s = active();
+        Strip s0 = active();
+        Strip s = s0 != null && s0.pinned ? null : s0;
         open = v;
         renderMini();
         if (anim != null) anim.cancel();
-        for (Strip x : all()) if (x != s) {
+        for (Strip x : all()) if (x != s && !x.pinned) {
             setH(x, v ? T.dp(104) : 0);
             x.setAlpha(v ? 1f : 0f);
         }
@@ -324,6 +333,7 @@ public final class Stories {
         final HorizontalScrollView hs;
         final LinearLayout row;
         String sig;
+        boolean pinned;
         WeakReference<Home.Tab> tab = new WeakReference<>(null);
 
         Strip(Context c) {

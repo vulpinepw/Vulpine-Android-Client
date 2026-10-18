@@ -137,7 +137,7 @@ public class Home extends Screen {
                     chatsBadge++;
                     updateBadges();
                 }
-                if (Session.settings().optBoolean("toastEnabled", true)) Ov.toast(m.optString("fromDisplayName", "Someone") + " mentioned you");
+                if (Session.settings().optBoolean("toastEnabled", true)) Ov.toast(m.optString("fromDisplayName", "Someone") + (m.has("ping") ? " mentioned @" + m.optString("ping") : " mentioned you"));
             }
         });
     };

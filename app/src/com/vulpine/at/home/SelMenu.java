@@ -216,6 +216,7 @@ public final class SelMenu {
             for (Chats.Conv x : cs) {
                 Sync.unread().remove(x.id);
                 App.bg(() -> Http.post("/conversations/" + x.id + "/read", null));
+                com.vulpine.at.svc.Notifier.cancelConv(App.ctx, x.id);
             }
             Sync.save();
             done(t);
