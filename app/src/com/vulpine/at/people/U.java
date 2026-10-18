@@ -116,6 +116,7 @@ public final class U {
         if (Badges.isBot(handle)) {
             ImageView b = new ImageView(c);
             b.setImageDrawable(Ic.svg(Badges.BOT_SVG, sizeDp, T.text));
+            b.setTag("bot");
             row.addView(b, W.lpm(T.dp(sizeDp), T.dp(sizeDp), mlDp, 0, 0, 0));
             return;
         }
@@ -124,12 +125,14 @@ public final class U {
             ImageView b = new ImageView(c);
             b.setScaleType(ImageView.ScaleType.FIT_CENTER);
             Img.anim(b, u, T.dp(sizeDp * 2), true);
+            b.setTag(u);
             row.addView(b, W.lpm(T.dp(sizeDp), T.dp(sizeDp), mlDp, 0, 0, 0));
         }
         if (pro && (proAlways || l.isEmpty())) {
             ImageView p = new ImageView(c);
             p.setScaleType(ImageView.ScaleType.FIT_CENTER);
             Img.anim(p, "asset:pro-badge.gif", T.dp(sizeDp * 2), true);
+            p.setTag("pro");
             row.addView(p, W.lpm(T.dp(sizeDp), T.dp(sizeDp), mlDp, 0, 0, 0));
         }
     }

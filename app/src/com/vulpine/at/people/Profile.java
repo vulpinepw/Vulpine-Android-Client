@@ -314,8 +314,13 @@ public final class Profile extends Page {
     void badgesFor(LinearLayout row) {
         String uid = u.optString("id"), h = u.optString("handle");
         List<String> l = com.vulpine.at.home.Badges.forUser(uid, h);
+        int n0 = row.getChildCount();
         if (com.vulpine.at.home.Badges.isBot(h) || !l.isEmpty()) U.badges(row, uid, h, false, 16, 2, false);
         else if (u.optBoolean("pro")) U.badges(row, uid, h, true, 16, 0, true);
+        for (int i = n0; i < row.getChildCount(); i++) {
+            View bv = row.getChildAt(i);
+            if (bv.getTag() instanceof String) BadgeInfo.tappable(bv, (String) bv.getTag());
+        }
     }
 
     CharSequence handleSpans() {
