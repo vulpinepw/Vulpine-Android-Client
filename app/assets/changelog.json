@@ -1,0 +1,82 @@
+{
+ "54": {
+  "name": "3.2.2",
+  "date": "October 16, 2026",
+  "items": [
+   "Chat list previews now say \"Sticker\" instead of \"Photo\" when the last message is a sticker",
+   "Pinned message bar shows \"Sticker\" for pinned stickers",
+   "New: this changelog appears after each update so you can see what changed"
+  ]
+ },
+ "55": {
+  "name": "3.2.3",
+  "date": "October 16, 2026",
+  "items": [
+   "Swiping right to leave a chat is more responsive: it starts sooner and needs a shorter swipe"
+  ]
+ },
+ "56": {
+  "name": "3.2.4",
+  "date": "October 18, 2026",
+  "items": [
+   "Voice messages, photos and files sent while replying now stay attached to the message you replied to"
+  ]
+ },
+ "57": {
+  "name": "3.2.5",
+  "date": "October 18, 2026",
+  "items": [
+   "Group owners and admins can remove people from a voice call: long-press their tile and choose \"Remove from call\"",
+   "Voice messages, photos and files sent while replying now stay attached to the message you replied to"
+  ]
+ },
+ "58": {
+  "name": "3.2.6",
+  "date": "October 18, 2026",
+  "items": [
+   "Unread counters in groups are now per person: someone else reading a message no longer clears your unread badge",
+   "Unread badges no longer come back after you read a chat",
+   "Reading a chat on another device now clears the badge here too",
+   "Read ticks: earlier messages are marked as read when you read the latest one, and your own messages are no longer marked read by you"
+  ]
+ },
+ "59": {
+  "name": "3.2.7",
+  "date": "October 18, 2026",
+  "items": [
+   "In calls, tapping someone's tile now opens their menu (volume, profile, mute locally, remove from call)"
+  ]
+ },
+ "60": {
+  "name": "3.2.8",
+  "date": "October 18, 2026",
+  "items": [
+   "Fixed: the menu on people in a call opened behind the call screen, so it looked like nothing happened. Tapping someone's tile now shows it on top"
+  ]
+ },
+ "61": {
+  "name": "3.2.9",
+  "date": "October 18, 2026",
+  "items": [
+   "Profile font and background effect pickers: the selection border now stays inside its box",
+   "Voice messages no longer change size while playing",
+   "Message notifications now disappear once you read the chat, here or on another device"
+  ]
+ },
+ "62": {
+  "name": "3.3.0",
+  "date": "October 18, 2026",
+  "items": [
+   "Voice recording: a lock appears above the mic while you hold it, slide up to lock",
+   "When locked, the mic button turns into a send button and a trash button lets you cancel the recording"
+  ]
+ },
+ "63": {
+  "name": "3.3.1",
+  "date": "October 18, 2026",
+  "items": [
+   "Voice recording: slide left while holding the mic to cancel",
+   "A lock appears above the mic while you hold it, slide up to lock; when locked, the mic turns into a send button and a trash button cancels"
+  ]
+ }
+}
