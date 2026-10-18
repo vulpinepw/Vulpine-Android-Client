@@ -10,8 +10,8 @@ SDK = os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT') or os
 PLATFORM = os.environ.get('ANDROID_PLATFORM', 'android-36')
 B = os.environ.get('BUILD') or os.path.join(R, 'build')
 ABIS = (os.environ.get('ABIS') or 'arm64-v8a,armeabi-v7a').split(',')
-VC = os.environ.get('VERSION_CODE', '42')
-VN = os.environ.get('VERSION_NAME', '3.1.0')
+VC = os.environ.get('VERSION_CODE', '63')
+VN = os.environ.get('VERSION_NAME', '3.3.1')
 OUT = os.environ.get('OUT', os.path.join(B, 'vulpine.apk'))
 
 
