@@ -85,6 +85,10 @@ public class ChatScreen extends Screen {
         }
 
         public void mention(String handle) {
+            if (Tip.ping(handle)) {
+                Tip.ping(root, handle);
+                return;
+            }
             openProfile(handle);
         }
     };
@@ -132,6 +136,9 @@ public class ChatScreen extends Screen {
             public boolean dispatchTouchEvent(MotionEvent e) {
                 int act = e.getActionMasked();
                 if (act == MotionEvent.ACTION_DOWN) {
+                    Tip.tx = e.getRawX();
+                    Tip.ty = e.getRawY();
+                    Tip.hide();
                     longFired = false;
                     userAt = System.currentTimeMillis();
                 } else if (act == MotionEvent.ACTION_MOVE) userAt = System.currentTimeMillis();
@@ -749,11 +756,12 @@ public class ChatScreen extends Screen {
 
     void markRead() {
         if (!App.fg) return;
+        com.vulpine.at.svc.Notifier.cancelConv(App.ctx, cid);
         List<String> ids = new ArrayList<>();
         int f = list.getFirstVisiblePosition(), l = list.getLastVisiblePosition();
         for (int i = Math.max(0, f); i <= l && i < items.size(); i++) {
             MsgView.Item it = items.get(i);
-            if (it.type == 2 && !it.m.mine() && it.m.readAt == null && it.m.id != null && it.m.id.length() > 20 && !readSent.contains(it.m.id)) {
+            if (it.type == 2 && !it.m.mine() && it.m.id != null && it.m.id.length() > 20 && !readSent.contains(it.m.id)) {
                 ids.add(it.m.id);
                 readSent.add(it.m.id);
             }

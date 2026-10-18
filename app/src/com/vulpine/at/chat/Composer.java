@@ -137,6 +137,7 @@ public class Composer implements Panels.Host {
         form.setGravity(Gravity.BOTTOM);
         form.setPadding(T.dp(8), T.dp(8), T.dp(8), T.dp(8));
         form.setBackground(W.round(T.glassBg, 22, T.glassStroke, .5f));
+        s.root.post(() -> com.vulpine.at.ui.Blur.apply(form, 22, s.root.getChildAt(0), s.root.getChildAt(1)));
         form.setElevation(T.dpf(6));
         attach = btn(c, Ic.has("chat.attach") ? Ic.get("chat.attach", 22, T.textSecondary) : Svg.stroke(22, T.textSecondary, 2, "M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"), 40, "Attach file", v -> Attach.pick(s));
         form.addView(attach, W.lp(T.dp(40), T.dp(40)));
@@ -220,8 +221,9 @@ public class Composer implements Panels.Host {
         rtBtn.setVisibility(View.GONE);
         form.addView(rtBtn, W.lpm(T.dp(36), T.dp(36), 8, 0, 0, 0));
         gifBtn = btn(c, Ic.has("chat.gif") ? Ic.get("chat.gif", 21, T.textSecondary) : Svg.stroke(21, T.textSecondary, 2, "M3 5h18v14H3z"), 36, "GIF", v -> panel(Panels.GIF));
+        gifBtn.setVisibility(View.GONE);
         form.addView(gifBtn, W.lpm(T.dp(36), T.dp(36), 8, 0, 0, 0));
-        emojiBtn = btn(c, Ic.has("chat.emoji") ? Ic.get("chat.emoji", 21, T.textSecondary) : Svg.stroke(21, T.textSecondary, 2, "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"), 36, "Emoji", v -> panel(Panels.EMOJI));
+        emojiBtn = btn(c, Ic.has("chat.emoji") ? Ic.get("chat.emoji", 21, T.textSecondary) : Svg.stroke(21, T.textSecondary, 2, "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"), 36, "Emoji and GIFs", v -> panel(Panels.last));
         form.addView(emojiBtn, W.lpm(T.dp(36), T.dp(36), 8, 0, 0, 0));
         sendWrap = new FrameLayout(c);
         send = new ImageView(c);
@@ -275,12 +277,13 @@ public class Composer implements Panels.Host {
             form.setLayoutParams(fp);
         }
         FrameLayout.LayoutParams wp = (FrameLayout.LayoutParams) wrap.getLayoutParams();
-        int bm = ime > 0 ? ime : (panels != null && panels.open() ? panels.height() + bottom : 0);
+        int bm = panels != null && panels.open() ? (ime > 0 ? ime + panels.searchHeight() : panels.height() + bottom) : ime;
         if (wp.bottomMargin != bm) {
             wp.bottomMargin = bm;
             wrap.setLayoutParams(wp);
         }
-        if (ime > 0) Panels.learn(ime);
+        if (panels != null) panels.onIme(panels.open() ? ime : 0);
+        if (ime > 0 && (panels == null || !panels.open())) Panels.learn(ime);
     }
 
     boolean canSend() {
@@ -312,6 +315,16 @@ public class Composer implements Panels.Host {
         return me.optBoolean("isCreator") || "creator".equals(r) || "admin".equals(r);
     }
 
+    boolean canPoll() {
+        Chats.Conv c = s.conv;
+        if (c == null || !c.group()) return false;
+        if (isAdmin()) return true;
+        JSONObject me = c.member(Session.userId());
+        if (me == null) return false;
+        JSONObject perms = rolePerms(c, me.optString("role", "member"));
+        return perms != null && perms.optBoolean("createPolls");
+    }
+
     String hintText = "";
 
     void hint(String h) {
@@ -328,7 +341,7 @@ public class Composer implements Panels.Host {
         else hint("Type something...");
         attach.setVisibility(can ? View.VISIBLE : View.GONE);
         sendWrap.setVisibility(can ? View.VISIBLE : View.GONE);
-        pollBtn.setTag(isAdmin() ? "y" : null);
+        pollBtn.setTag(null);
         botBtn.setTag(Mentions.hasBotCommands(s.cid) ? "y" : null);
         Mentions.loadCommands(s.cid, () -> {
             boolean on = Mentions.hasBotCommands(s.cid);
@@ -346,7 +359,7 @@ public class Composer implements Panels.Host {
         } else if (input.getMaxHeight() != T.dp(120)) input.setMaxHeight(T.dp(120));
         mic.setVisibility(has || editing != null ? View.GONE : View.VISIBLE);
         float target = has ? 0 : 1;
-        for (View b : new View[]{botBtn, gifBtn, emojiBtn, pollBtn}) {
+        for (View b : new View[]{botBtn, emojiBtn, pollBtn}) {
             if ((b == pollBtn || b == botBtn) && b.getTag() == null) {
                 b.setVisibility(View.GONE);
                 continue;
@@ -415,6 +428,27 @@ public class Composer implements Panels.Host {
         focus();
     }
 
+    String replyPrefix() {
+        if (replyTo == null) return "";
+        Chats.Msg r = replyTo;
+        String author = r.mine() ? "You" : s.senderName(r);
+        String snip = r.text == null ? "" : r.text;
+        Fmt.Parsed rp = r.text == null ? null : Fmt.parse(r.text);
+        if (rp != null && rp.replyAuthor != null) snip = rp.body;
+        snip = snip.replaceAll("\\s+", " ").trim();
+        if (snip.length() > 120) snip = snip.substring(0, 120);
+        return "»|" + author + "\n»|" + (r.id != null ? "#" + r.id + "#" : "") + snip + "\n";
+    }
+
+    public String takeReply() {
+        String p = replyPrefix();
+        if (replyTo != null) {
+            replyTo = null;
+            if (editing == null) banner.setVisibility(View.GONE);
+        }
+        return p;
+    }
+
     void clearMode() {
         if (editing != null) input.setText("");
         replyTo = null;
@@ -432,6 +466,7 @@ public class Composer implements Panels.Host {
     }
 
     boolean onBack() {
+        if (AttachSheet.close()) return true;
         if (Mentions.close(this)) return true;
         if (panels.open()) {
             panels.close();
@@ -445,6 +480,7 @@ public class Composer implements Panels.Host {
     }
 
     void destroy() {
+        AttachSheet.close();
         panels.close();
         RecUI.cancel(this);
     }
@@ -454,6 +490,7 @@ public class Composer implements Panels.Host {
         submit();
     }
 
+    static final Pattern PING = Pattern.compile("(?:^|\\s)@(everyone|here)(?![a-z0-9_])");
     static final Pattern MENTION = Pattern.compile("(?:^|\\s)@([a-z0-9_]{3,20})");
 
     boolean keyWait;
@@ -520,17 +557,7 @@ public class Composer implements Panels.Host {
             input.setText("");
             return;
         }
-        String body = text;
-        if (replyTo != null) {
-            Chats.Msg r = replyTo;
-            String author = r.mine() ? "You" : s.senderName(r);
-            String snip = r.text == null ? "" : r.text;
-            Fmt.Parsed rp = r.text == null ? null : Fmt.parse(r.text);
-            if (rp != null && rp.replyAuthor != null) snip = rp.body;
-            snip = snip.replaceAll("\\s+", " ").trim();
-            if (snip.length() > 120) snip = snip.substring(0, 120);
-            body = "»|" + author + "\n»|" + (r.id != null ? "#" + r.id + "#" : "") + snip + "\n" + text;
-        }
+        String body = replyPrefix() + text;
         List<String> mentions = new ArrayList<>();
         if (s.conv != null && s.conv.group()) {
             Matcher mm = MENTION.matcher(text);
@@ -542,7 +569,15 @@ public class Composer implements Panels.Host {
         }
         String fb = body;
         if (text.contains("/uploads/")) App.bg(() -> Forward.grant(s.cid, fb));
-        Chats.Msg m = Chats.I.send(s.cid, body, mentions);
+        String ping = null;
+        if (s.conv != null && s.conv.group() && isAdmin()) {
+            Matcher pm = PING.matcher(text);
+            while (pm.find()) {
+                if ("everyone".equals(pm.group(1))) ping = "everyone";
+                else if (ping == null) ping = "here";
+            }
+        }
+        Chats.Msg m = Chats.I.send(s.cid, body, mentions, ping);
         if (m == null) {
             Ov.toast("Could not send message.", true);
             return;

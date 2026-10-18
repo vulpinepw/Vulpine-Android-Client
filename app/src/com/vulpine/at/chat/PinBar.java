@@ -23,7 +23,7 @@ public final class PinBar {
         String cap = (p.body == null ? "" : p.body).replaceAll("(?s)\\|\\|.+?\\|\\|", "▒▒▒▒").replaceAll("(?m)^>+\\s?", "").replaceAll("\\s+", " ").trim();
         if (!p.atts.isEmpty()) {
             Fmt.Att a = p.atts.get(0);
-            String l = a.image() ? "Photo" : a.video() ? "Video" : a.audio() ? "Audio" : (a.name.isEmpty() ? "File" : a.name);
+            String l = Fmt.sticker(a) ? "Sticker" : a.image() ? "Photo" : a.video() ? "Video" : a.audio() ? "Audio" : (a.name.isEmpty() ? "File" : a.name);
             return cap.isEmpty() ? l : l + ", " + cap;
         }
         return cap.isEmpty() ? "Message" : cap;

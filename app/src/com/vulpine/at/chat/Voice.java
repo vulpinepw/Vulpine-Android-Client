@@ -105,14 +105,15 @@ public final class Voice {
         t.name = m == null ? "Voice message" : (m.mine() ? "You" : s.senderName(m));
         t.sender = a.voice() ? "Voice message" : "Audio";
         View[] wv = new View[1];
+        int[] base = {T.dp(120)};
         LinearLayout row = new LinearLayout(c) {
             @Override
             protected void onMeasure(int ws, int hs) {
                 android.view.ViewGroup.LayoutParams lp = wv[0].getLayoutParams();
-                if (lp.width != T.dp(120)) lp.width = T.dp(120);
+                lp.width = base[0];
                 super.onMeasure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), hs);
                 int need = getMeasuredWidth(), max = MeasureSpec.getSize(ws);
-                if (MeasureSpec.getMode(ws) != MeasureSpec.UNSPECIFIED && need > max) lp.width = Math.max(T.dp(40), T.dp(120) - (need - max));
+                if (MeasureSpec.getMode(ws) != MeasureSpec.UNSPECIFIED && need > max) lp.width = Math.max(T.dp(40), base[0] - (need - max));
                 super.onMeasure(ws, hs);
             }
         };
@@ -130,18 +131,22 @@ public final class Voice {
         row.addView(pp, W.lp(T.dp(30), T.dp(30)));
         Wave wave = new Wave(c, a.url);
         wv[0] = wave;
-        row.addView(wave, W.lpm(T.dp(120), T.dp(30), 8, 0, 0, 0));
+        row.addView(wave, W.lpm(base[0], T.dp(30), 8, 0, 0, 0));
         LinearLayout meta = W.row(c);
         meta.setAlpha(.85f);
         TextView time = W.text(c, "0:00", 11, 400, T.text);
         time.setFontFeatureSettings("tnum");
         time.setSingleLine(true);
+        time.setGravity(Gravity.END);
+        time.setMinWidth((int) Math.ceil(time.getPaint().measureText("00:00")));
         meta.addView(time);
         TextView rate = W.text(c, "1x", 10, 700, T.text);
         rate.setSingleLine(true);
         rate.setPadding(T.dp(6), T.dp(2), T.dp(6), T.dp(2));
         rate.setBackground(W.round(0, 99, T.text, 1));
         rate.setAlpha(.7f);
+        rate.setGravity(Gravity.CENTER);
+        rate.setMinWidth((int) Math.ceil(rate.getPaint().measureText("1.25x")) + T.dp(12));
         meta.addView(rate, W.lpm(W.WC, W.WC, 5, 0, 0, 0));
         row.addView(meta, W.lpm(W.WC, W.WC, 8, 0, 0, 0));
         Runnable[] render = new Runnable[1];
@@ -152,16 +157,8 @@ public final class Voice {
             spin.setVisibility(t.loading ? View.VISIBLE : View.GONE);
             int d = t.durMs > 0 ? t.durMs : 0;
             int ct = t.loading || t.mp == null || !t.prepared ? 0 : t.mp.getCurrentPosition();
-            time.setText(d > 0 ? Fmt.dur(ct / 1000.0) + " / " + Fmt.dur(d / 1000.0) : Fmt.dur(ct / 1000.0));
+            time.setText(playing || ct > 0 || d <= 0 ? Fmt.dur(ct / 1000.0) : Fmt.dur(d / 1000.0));
             rate.setText((t.rate == 1.25f ? "1.25" : String.valueOf((int) t.rate)) + "x");
-            if (d > 0) {
-                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) wave.getLayoutParams();
-                int w = T.dp(Math.max(70, Math.min(220, d / 1000f * 20)));
-                if (lp.width != w) {
-                    lp.width = w;
-                    wave.setLayoutParams(lp);
-                }
-            }
             wave.progress = d > 0 ? ct / (float) d : 0;
             wave.invalidate();
         };
@@ -402,6 +399,17 @@ public final class Voice {
                 active = false;
                 Ov.toast("Microphone access denied", true);
                 return false;
+            }
+        }
+
+        public static float level() {
+            MediaRecorder r = rec;
+            if (!active || r == null) return 0;
+            try {
+                float v = r.getMaxAmplitude() / 32767f;
+                return Math.min(1f, (float) Math.sqrt(v) * 1.4f);
+            } catch (Exception e) {
+                return 0;
             }
         }
 

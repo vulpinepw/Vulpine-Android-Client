@@ -107,6 +107,10 @@ public final class Media {
         return u;
     }
 
+    public static boolean isSticker(Fmt.Att a) {
+        return a != null && "sticker.webp".equals(a.name) && a.image();
+    }
+
     static void fitWidth(View v, int maxW) {
         android.view.ViewGroup.LayoutParams lp = v.getLayoutParams();
         if (lp != null && lp.width > maxW) {
@@ -124,10 +128,17 @@ public final class Media {
             boolean hasCap = !cap.isEmpty();
             if (a.image()) {
                 boolean gif = a.gif();
-                int[] bx = gif ? box(a, 260, 200, 200, 4f / 3f) : box(a, 420, 360, 260, 4f / 3f);
+                boolean stk = isSticker(a) && !hasCap;
+                int[] bx = stk ? new int[]{T.dp(160), T.dp(160)} : gif ? box(a, 260, 200, 200, 4f / 3f) : box(a, 420, 360, 260, 4f / 3f);
                 RoundImage iv = new RoundImage(c);
                 iv.corners(12, 12, hasCap ? 0 : 12, hasCap ? 0 : 12);
                 iv.setBackgroundColor(T.mixA(T.text, .08f));
+                if (stk) {
+                    iv.corners(0, 0, 0, 0);
+                    iv.setBackgroundColor(0);
+                    iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    iv.setTag(0x7f0f0002, Boolean.TRUE);
+                }
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(bx[0], bx[1]);
                 iv.setLayoutParams(lp);
                 fitWidth(iv, maxW);
@@ -136,10 +147,16 @@ public final class Media {
                     lp.height = Math.min(T.dp(440), Math.round(lp.height * (nw / (float) lp.width)));
                     lp.width = nw;
                 }
-                loadImage(s, iv, a.url, gif, lp.width);
                 List<Fmt.Att> one = new ArrayList<>();
                 one.add(a);
-                iv.setOnClickListener(v -> Viewer.open(s, one, 0, m));
+                if (stk) {
+                    Img.anim(iv, a.url, T.dp(320), true);
+                    s.trackAnim(iv);
+                    iv.setOnClickListener(v -> Panels.stickerInfo(s.root, a.url));
+                } else {
+                    loadImage(s, iv, a.url, gif, lp.width);
+                    iv.setOnClickListener(v -> Viewer.open(s, one, 0, m));
+                }
                 iv.setOnLongClickListener(v -> {
                     s.menuFor(m, v, gif ? a.url : null);
                     return true;
@@ -238,7 +255,7 @@ public final class Media {
     }
 
     static void fitNatural(ImageView iv, String url, int w, int h, boolean gif) {
-        if (w <= 0 || h <= 0) return;
+        if (w <= 0 || h <= 0 || iv.getTag(0x7f0f0002) != null) return;
         String k = base(url);
         if (url.matches("(?s).*#(?:[^#]*&)?vw=\\d+&vh=\\d+.*")) return;
         if (gif && !url.toLowerCase().contains(".gif") && dims.containsKey(k)) return;

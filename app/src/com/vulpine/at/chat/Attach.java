@@ -44,15 +44,23 @@ public final class Attach {
     }
 
     static void pick(ChatScreen s) {
-        if (!s.composer.canSend()) return;
+        if (allowed(s)) AttachSheet.open(s);
+    }
+
+    static boolean allowed(ChatScreen s) {
+        if (!s.composer.canSend()) return false;
         if (s.conv != null && s.conv.group() && !s.composer.isAdmin()) {
             JSONObject me = s.conv.member(Session.userId());
             JSONObject perms = me == null ? null : Composer.rolePerms(s.conv, me.optString("role", "member"));
             if (perms != null && !perms.optBoolean("sendAttachments", true)) {
                 Ov.toast("You don't have permission to send images & files in this group.", true);
-                return;
+                return false;
             }
         }
+        return true;
+    }
+
+    static void files(ChatScreen s) {
         Intent i = new Intent(Intent.ACTION_GET_CONTENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE).putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         App.startForResult(s.a, Intent.createChooser(i, null), (res, data) -> {
             if (res != Activity.RESULT_OK || data == null) return;
@@ -60,20 +68,24 @@ public final class Attach {
             ClipData cd = data.getClipData();
             if (cd != null) for (int k = 0; k < cd.getItemCount(); k++) uris.add(cd.getItemAt(k).getUri());
             else if (data.getData() != null) uris.add(data.getData());
-            if (uris.isEmpty()) return;
-            if (uris.size() > 5) {
-                Ov.toast("Up to 5 items per message");
-                uris = uris.subList(0, 5);
+            pickedUris(s, uris);
+        });
+    }
+
+    static void pickedUris(ChatScreen s, List<Uri> uris) {
+        if (uris.isEmpty()) return;
+        if (uris.size() > 5) {
+            Ov.toast("Up to 5 items per message");
+            uris = uris.subList(0, 5);
+        }
+        List<Uri> fu = uris;
+        App.bg(() -> {
+            List<Item> items = new ArrayList<>();
+            for (Uri u : fu) {
+                Item it = copy(s.a, u);
+                if (it != null) items.add(it);
             }
-            List<Uri> fu = uris;
-            App.bg(() -> {
-                List<Item> items = new ArrayList<>();
-                for (Uri u : fu) {
-                    Item it = copy(s.a, u);
-                    if (it != null) items.add(it);
-                }
-                App.ui(() -> route(s, items));
-            });
+            App.ui(() -> route(s, items));
         });
     }
 
@@ -262,10 +274,11 @@ public final class Attach {
             Ov.toast("File too large (max " + (limit() / 1048576) + "MB)" + (items.size() > 1 ? ": " + it.name : ""), true);
             return;
         }
-        StringBuilder lb = new StringBuilder();
+        String rp = s.composer != null ? s.composer.takeReply() : "";
+        StringBuilder lb = new StringBuilder(rp);
         for (int k = 0; k < items.size(); k++) {
             Item it = items.get(k);
-            if (lb.length() > 0) lb.append('\n');
+            if (k > 0) lb.append('\n');
             lb.append("📎|").append(safeName(it.name)).append('|').append(it.mime).append("|file:").append(it.file.getPath()).append(frag(it, carousel && k == 0));
         }
         if (caption != null && !caption.isEmpty()) lb.append('\n').append(caption);
@@ -289,9 +302,11 @@ public final class Attach {
                 String nm = safeName(r.optString("name", it.name));
                 lines.add("📎|" + nm + "|" + r.optString("type", it.mime) + "|" + url + frag(it.w > 0 ? it : raw, carousel && lines.isEmpty()));
             }
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new StringBuilder(rp);
+            boolean first = true;
             for (String l : lines) {
-                if (b.length() > 0) b.append('\n');
+                if (!first) b.append('\n');
+                first = false;
                 b.append(l);
             }
             if (caption != null && !caption.isEmpty()) b.append('\n').append(caption);
@@ -307,7 +322,8 @@ public final class Attach {
         it.name = name;
         it.mime = mime;
         String cap = caption == null || caption.isEmpty() ? "" : "\n" + caption;
-        Chats.Msg loc = local(s, "📎|" + safeName(name) + "|" + mime + "|file:" + f.getPath() + cap);
+        String rp = s.composer != null ? s.composer.takeReply() : "";
+        Chats.Msg loc = local(s, rp + "📎|" + safeName(name) + "|" + mime + "|file:" + f.getPath() + cap);
         App.bg(() -> {
             JSONObject r = upload(s, it, label);
             if (r == null) {
@@ -316,7 +332,7 @@ public final class Attach {
             }
             String url = r.optString("url");
             Img.prime(url, f);
-            String text = "📎|" + safeName(name) + "|" + r.optString("type", mime) + "|" + url + cap;
+            String text = rp + "📎|" + safeName(name) + "|" + r.optString("type", mime) + "|" + url + cap;
             finish(s, loc, text, null);
         });
     }
@@ -334,7 +350,7 @@ public final class Attach {
         }
         if (!r.ok()) {
             String e = r.error();
-            String msg = "file_too_large".equals(e) ? "File too large (max " + r.obj().optString("limit", "30MB") + ")" : "attachments_not_allowed".equals(e) ? "You don't have permission to send images & files in this group." : "network".equals(e) ? "Network error" : r.status > 0 ? "Upload failed" : "Network error";
+            String msg = "file_too_large".equals(e) ? "File too large (max " + r.obj().optString("limit", "30MB") + ")" : "invalid_file_type".equals(e) ? "This file type isn't supported" : "attachments_not_allowed".equals(e) ? "You don't have permission to send images & files in this group." : "network".equals(e) ? "Network error" : r.status > 0 ? "Upload failed" : "Network error";
             App.ui(() -> Ov.toast(msg, true));
             return null;
         }

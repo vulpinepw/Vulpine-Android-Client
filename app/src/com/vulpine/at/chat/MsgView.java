@@ -114,7 +114,8 @@ public final class MsgView {
             if (sm.matches()) sticker = Emoji.custom(sm.group(1));
         }
         boolean media = p != null && !p.atts.isEmpty() && (p.atts.size() == 1 ? p.atts.get(0).media() : hasMedia(p.atts));
-        boolean bare = jumbo > 0 || sticker != null;
+        boolean pack = p != null && p.atts.size() == 1 && Media.isSticker(p.atts.get(0)) && p.body.trim().isEmpty() && p.replyAuthor == null && !p.forwarded;
+        boolean bare = jumbo > 0 || sticker != null || pack;
         Bubble b = new Bubble(c);
         b.setTag("bubble");
         int sw = c.getResources().getDisplayMetrics().widthPixels - T.dp(32);

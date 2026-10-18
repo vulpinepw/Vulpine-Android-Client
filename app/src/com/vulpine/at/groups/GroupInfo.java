@@ -325,6 +325,7 @@ public final class GroupInfo extends Page {
                 b.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 Img.anim(b, badge, T.dp(36), true);
                 nr.addView(b, W.lpm(T.dp(18), T.dp(18), 6, 0, 0, 0));
+                com.vulpine.at.people.BadgeInfo.tappable(b, badge);
                 extra.add(b);
             }
             int lv = boost == null ? 0 : boost.optInt("level");
@@ -333,6 +334,7 @@ public final class GroupInfo extends Page {
                 p.setPadding(T.dp(7), T.dp(1), T.dp(7), T.dp(1));
                 p.setBackground(lv >= 10 ? new U.Grad(new int[]{0xfff97316, 0xffec4899, 0xff8b5cf6, 0xff3b82f6, 0xff22c55e, 0xfff97316}, 90, T.dpf(999)) : new U.Grad(new int[]{0xffa78bfa, 0xff7c3aed}, 160, T.dpf(999)));
                 nr.addView(p, W.lpm(W.WC, W.WC, 6, 0, 0, 0));
+                com.vulpine.at.people.BadgeInfo.tappable(p, "lv:" + lv);
                 extra.add(p);
             }
             nm.setMaxWidth(c.getResources().getDisplayMetrics().widthPixels - T.dp(32 + 64 + 12 + (headWrap != head ? 32 : 0)) - extra.size() * T.dp(46));

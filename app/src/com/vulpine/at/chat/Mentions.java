@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -102,6 +103,20 @@ public final class Mentions {
         }
         l.sort((a, b) -> a.optString("handle").compareTo(b.optString("handle")));
         List<Object[]> rows = new ArrayList<>();
+        if (cp.isAdmin()) for (String[] sp : new String[][]{{"everyone", "Notify everyone in this group"}, {"here", "Notify everyone who is online"}}) {
+            if (!sp[0].startsWith(f)) continue;
+            ImageView ic = new ImageView(cp.s.a);
+            ic.setImageDrawable(com.vulpine.at.ui.Svg.stroke(14, T.accentFg, 2.2f, "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"));
+            ic.setScaleType(ImageView.ScaleType.CENTER);
+            ic.setBackground(W.accentBg(999));
+            rows.add(new Object[]{ic, "@" + sp[0], sp[1], (Runnable) () -> {
+                android.text.Editable e = cp.input.getText();
+                int caret = cp.input.getSelectionStart();
+                int at = e.toString().lastIndexOf('@', caret - 1);
+                if (at >= 0) e.replace(at, caret, "@" + sp[0] + " ");
+                close(cp);
+            }});
+        }
         for (int i = 0; i < Math.min(8, l.size()); i++) {
             JSONObject o = l.get(i);
             AvatarView av = new AvatarView(cp.s.a);
