@@ -4,6 +4,8 @@ import com.vulpine.core.Chats;
 import com.vulpine.core.Http;
 import com.vulpine.core.Session;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -153,13 +155,27 @@ public final class Sync {
                 String k = it.next();
                 if (k.equals(Chats.I.activeCid) || contains(muted, k)) continue;
                 int v = c.optInt(k);
-                if (v > u.optInt(k)) {
+                if (v != u.optInt(k)) {
                     try {
                         u.put(k, v);
                     } catch (Exception e) {
                     }
                     ch = true;
                 }
+            }
+            List<String> stale = new ArrayList<>();
+            Iterator<String> lk = u.keys();
+            while (lk.hasNext()) {
+                String k = lk.next();
+                if (!c.has(k) && !k.equals(Chats.I.activeCid) && !contains(muted, k) && Chats.I.convs.containsKey(k) && u.optInt(k) > 0) stale.add(k);
+            }
+            for (String k : stale) {
+                u.remove(k);
+                ch = true;
+            }
+            for (String k : Chats.I.convs.keySet()) {
+                if (c.optInt(k) > 0) continue;
+                if (c.optInt(k) == 0 && com.vulpine.at.svc.Notifier.isActive(App.ctx, "vulpine-" + k)) com.vulpine.at.svc.Notifier.cancelConv(App.ctx, k);
             }
             if (ch) {
                 Session.save();

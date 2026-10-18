@@ -269,14 +269,15 @@ public final class Push implements Runnable {
         }
         if (wasShown(mid) || appVisible() || !allow()) return;
         JSONObject u = me();
-        if (u != null && "dnd".equals(u.optString("status"))) return;
+        String ping = m.optString("ping", "");
+        if (u != null && "dnd".equals(u.optString("status")) && ping.isEmpty()) return;
         if (inList(u, "mutedChatIds", cid)) return;
         boolean locked = u == null || u.optBoolean("hasPin") || inList(u, "hiddenChatIds", cid) || com.vulpine.at.Pin.fake;
         markShown(mid);
         if (!Notifier.isActive(ctx, "vulpine-" + cid)) counts.remove(cid);
         int n = counts.containsKey(cid) ? counts.get(cid) + 1 : 1;
         counts.put(cid, n);
-        String body = n > 1 ? n + " new messages" : "New message";
+        String body = !ping.isEmpty() ? "Mentioned @" + ping : n > 1 ? n + " new messages" : "New message";
         if (locked) {
             Notifier.post(ctx, "Vulpine", body, "vulpine-" + cid, null, false);
             return;

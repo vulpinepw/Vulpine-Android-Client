@@ -539,6 +539,8 @@ final class Pops {
         return o;
     }
 
+    static final String[] P_KICK = {"M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M5 21c0-4 3-6 7-6", "M16 13l5 5", "M21 13l-5 5"};
+
     static void menuItem(Ov.Menu mm, String label, String[] icon, Runnable run) {
         mm.item(label, com.vulpine.at.ui.Svg.stroke(15, T.text, 1.8f, icon), false, run);
     }
@@ -590,6 +592,8 @@ final class Pops {
             ui.refresh();
         });
         if (t.showVideo) menuItem(mm, "Fullscreen", P_FULL, () -> fullscreen(ui, t.uid));
+        Sig.Call cc = Calls.sig.cur;
+        if (cc != null && Rooms.adminOf(cc.cid)) mm.item("Remove from call", com.vulpine.at.ui.Svg.stroke(15, T.danger, 1.8f, P_KICK), true, () -> Calls.sig.kick(t.uid));
         int[] h = new int[2];
         ui.a.host.getLocationOnScreen(h);
         float x = t.downX, y = t.downY;

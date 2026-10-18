@@ -53,10 +53,14 @@ public class Share extends ContentProvider {
     }
 
     public String getType(Uri u) {
-        return com.vulpine.at.ui.Fmt.mimeFromName(u.getLastPathSegment() == null ? "" : u.getLastPathSegment());
+        String n = u.getLastPathSegment() == null ? "" : u.getLastPathSegment();
+        if (n.toLowerCase().endsWith(".apk")) return "application/vnd.android.package-archive";
+        return com.vulpine.at.ui.Fmt.mimeFromName(n);
     }
 
     public ParcelFileDescriptor openFile(Uri u, String mode) throws FileNotFoundException {
+        File f = file(u);
+        if (mode != null && mode.contains("w") && f.getName().startsWith("cam-")) return ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_WRITE | ParcelFileDescriptor.MODE_TRUNCATE);
         return ParcelFileDescriptor.open(file(u), ParcelFileDescriptor.MODE_READ_ONLY);
     }
 

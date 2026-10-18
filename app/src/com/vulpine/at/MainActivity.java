@@ -210,6 +210,9 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         App.foreground(true);
+        if (com.vulpine.core.Session.s != null) App.H.postDelayed(() -> {
+            if (!isFinishing() && (!Pin.cachedHasPin() || Pin.unlocked)) Updater.check(this);
+        }, 1500);
     }
 
     @Override

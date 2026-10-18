@@ -36,8 +36,8 @@ public final class App {
     public static FileKv kv;
     public static boolean fg;
     static boolean inited;
-    public static final int VERSION_CODE = 42;
-    public static final String VERSION_NAME = "3.1.0";
+    public static final int VERSION_CODE = 63;
+    public static final String VERSION_NAME = "3.3.1";
 
     public interface PermCb {
         void on(boolean granted);
@@ -288,6 +288,7 @@ public final class App {
             Sync.start();
             Push.ensure(ctx);
             Updater.check(a);
+            Changelog.maybeShow(a);
             askNotif(a);
             crashReport(a);
         });

@@ -620,6 +620,7 @@ public final class CallUi {
                 setOnTouchListener((v, e) -> showVideo && gd.onTouchEvent(e));
             }
             if (!"local".equals(uid)) {
+                setOnClickListener(v -> Pops.tileMenu(ui, this));
                 setOnLongClickListener(v -> {
                     try {
                         v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);

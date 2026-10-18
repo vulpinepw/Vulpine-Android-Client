@@ -76,6 +76,18 @@ public final class Rooms {
         return false;
     }
 
+    static boolean adminOf(String key) {
+        if (key == null) return false;
+        String g = key.startsWith("r:") ? groupOf.get(key.substring(2)) : key;
+        if (g == null) return false;
+        JSONObject m = meta.get(g);
+        if (m == null) {
+            fetch(g, null);
+            return false;
+        }
+        return m.optBoolean("isAdmin");
+    }
+
     public static void fetch(String gid, Runnable done) {
         App.bg(() -> {
             Http.Resp r = Http.get("/conversations/" + gid + "/call-rooms");

@@ -261,6 +261,12 @@ public final class Sig {
         changed();
     }
 
+    public void kick(String uid) {
+        Call c = cur;
+        if (c == null || uid == null) return;
+        h.send(jo("type", "call.kick", "callId", c.callId, "conversationId", c.cid, "userId", uid));
+    }
+
     void armWd(String cid) {
         final int s = ++wdSeq;
         h.post(() -> {
@@ -531,6 +537,15 @@ public final class Sig {
                     h.event("beep", "leave");
                     h.event("toast", "Call declined");
                 }
+                break;
+            }
+            case "call.kicked": {
+                Call c = cur;
+                if (c == null || !v.optString("conversationId").equals(c.cid)) break;
+                String by = v.optString("byDisplayName", "");
+                teardown(false);
+                h.event("toast", "You were removed from the call" + (by.isEmpty() ? "" : " by " + by));
+                changed();
                 break;
             }
             case "call.ended": {
