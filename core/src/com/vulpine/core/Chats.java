@@ -376,6 +376,10 @@ public final class Chats {
     }
 
     public Msg send(String cid, String text, List<String> mentions) {
+        return send(cid, text, mentions, null);
+    }
+
+    public Msg send(String cid, String text, List<String> mentions, String ping) {
         Conv c = convs.get(cid);
         if (c == null) return null;
         byte[] k = key(c);
@@ -391,6 +395,7 @@ public final class Chats {
         try {
             JSONObject f = new JSONObject().put("type", "message.send").put("tempId", m.tempId).put("conversationId", cid).put("ciphertext", env.getString("ciphertext")).put("nonce", env.getString("nonce"));
             if (mentions != null && !mentions.isEmpty()) f.put("mentions", new JSONArray(mentions));
+            if (ping != null) f.put("ping", ping);
             upsert(m, true);
             Rt.I.send(f);
         } catch (Exception e) {
